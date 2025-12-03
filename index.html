@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Instagram PWA — فتح مباشر أو بزر</title>
+<meta name="description" content="صفحة PWA بسيطة: زر لفتح Instagram مباشرة + خيار فتح تلقائي بعد 3 ثوانٍ" />
+<style>
+  :root{--bg:#fff;--accent:#111;--muted:#666}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial;margin:0;padding:24px;background:linear-gradient(180deg,#fafafa,#fff);color:var(--accent);display:flex;align-items:center;justify-content:center;height:100vh}
+  .card{width:min(720px,92%);max-width:720px;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.06);padding:20px;text-align:center}
+  h1{margin:6px 0 12px;font-size:20px}
+  p{color:var(--muted);margin:0 0 16px}
+  .btn{display:inline-block;padding:12px 18px;margin:6px;border-radius:12px;background:#007aff;color:#fff;text-decoration:none;font-weight:700;border:0;cursor:pointer}
+  .muted{background:#34c759}
+  label{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:12px}
+  input[type="checkbox"]{width:18px;height:18px}
+  .countdown{margin-top:10px;color:#333;font-weight:600}
+  footer{margin-top:14px;color:#888;font-size:13px}
+</style>
+</head>
+<body>
+  <div class="card" role="main">
+    <h1>Instagram — افتح سريع</h1>
+    <p>تقدر تفتح Instagram مباشرة بزر، أو تفعّل خيار الفتح التلقائي وسيبدأ العد 3 ثوانٍ ثم يفتح تلقائياً.</p>
+
+    <div>
+      <button id="openBtn" class="btn">افتح Instagram الآن</button>
+      <button id="openNewTabBtn" class="btn muted">افتح في تبويب جديد</button>
+    </div>
+
+    <label>
+      <input type="checkbox" id="autoOpenToggle">
+      افتح تلقائيًا بعد 3 ثوانٍ
+    </label>
+    <div class="countdown" id="countdown" aria-live="polite" style="visibility:hidden"></div>
+
+    <footer>لتحويلها لتطبيق: افتح هذه الصفحة في Safari ثم Share → Add to Home Screen.</footer>
+  </div>
+
+<script>
+  const INSTAGRAM_URL = 'https://www.instagram.com/';
+  const openBtn = document.getElementById('openBtn');
+  const openNewTabBtn = document.getElementById('openNewTabBtn');
+  const autoToggle = document.getElementById('autoOpenToggle');
+  const countdownEl = document.getElementById('countdown');
+  let timer = null;
+
+  function openInstagram() {
+    // Open in same window (best for PWA standalone behavior)
+    window.location.href = INSTAGRAM_URL;
+  }
+  function openInstagramNewTab() {
+    // Try to open in a new tab/window
+    const a = document.createElement('a');
+    a.href = INSTAGRAM_URL;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.click();
+  }
+
+  openBtn.addEventListener('click', ()=>{
+    openInstagram();
+  });
+  openNewTabBtn.addEventListener('click', ()=>{
+    openInstagramNewTab();
+  });
+
+  autoToggle.addEventListener('change', ()=>{
+    if(autoToggle.checked){
+      startCountdown(3);
+    } else {
+      stopCountdown();
+    }
+  });
+
+  function startCountdown(seconds){
+    stopCountdown();
+    let s = seconds;
+    countdownEl.style.visibility = 'visible';
+    countdownEl.textContent = 'سيفتح تلقائيًا بعد ' + s + ' ثانية';
+    timer = setInterval(()=>{
+      s--;
+      if(s <= 0){
+        stopCountdown();
+        openInstagram();
+      } else {
+        countdownEl.textContent = 'سيفتح تلقائيًا بعد ' + s + ' ثانية';
+      }
+    },1000);
+  }
+  function stopCountdown(){
+    if(timer) clearInterval(timer);
+    timer = null;
+    countdownEl.style.visibility = 'hidden';
+    countdownEl.textContent = '';
+  }
+
+  // UX: if page opened in standalone mode and user added to home screen, enable subtle auto behavior
+  if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
+    // Optionally pre-check the toggle for convenience (commented out):
+    // autoToggle.checked = true; startCountdown(3);
+  }
+
+</script>
+</body>
+</html>
